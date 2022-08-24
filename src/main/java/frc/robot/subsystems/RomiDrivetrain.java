@@ -4,11 +4,15 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.sensors.RomiGyro;
 
 public class RomiDrivetrain extends SubsystemBase {
   private static final double kCountsPerRevolution = 1440.0;
@@ -27,6 +31,9 @@ public class RomiDrivetrain extends SubsystemBase {
   // Set up the differential drive controller
   private final DifferentialDrive m_diffDrive = new DifferentialDrive(m_leftMotor, m_rightMotor);
 
+  private final RomiGyro gyro = new RomiGyro();
+  DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(gyro.getRotation2d());
+
   /** Creates a new RomiDrivetrain. */
   public RomiDrivetrain() {
     // Use inches as unit for encoder distances
@@ -38,19 +45,37 @@ public class RomiDrivetrain extends SubsystemBase {
     m_rightMotor.setInverted(true);
   }
 
+  public Pose2d getPose() {
+    return odometry.getPoseMeters();
+  }
+
   public void arcadeDrive(double xaxisSpeed, double zaxisRotate) {
     m_diffDrive.arcadeDrive(xaxisSpeed, zaxisRotate);
   }
-  
+
   public void tankDrive(double Speed, double Rotate) {
-    if(Rotate > 0){
-     m_diffDrive.tankDrive(Speed, (1 - Math.abs(Rotate)) * Speed);
+    if (Rotate > 0) {
+      m_diffDrive.tankDrive(Speed, (1 - Math.abs(Rotate)) * Speed);
     } else if (Rotate < 0) {
       m_diffDrive.tankDrive(Speed * (1 - Math.abs(Rotate)), Speed);
     } else {
       m_diffDrive.tankDrive(Speed, Speed);
     }
     SmartDashboard.putNumber("Speed", Speed);
+  }
+
+  public DifferentialDriveWheelSpeeds getWheelSpeeds() {
+    return new DifferentialDriveWheelSpeeds(m_leftEncoder.getRate(), m_rightEncoder.getRate());
+  }
+    /**
+   * Controls the left and right sides of the drive directly with voltages.
+   * @param leftVolts the commanded left output
+   * @param rightVolts the commanded right output
+   */
+  public void tankDriveVolts(double leftVolts, double rightVolts) {
+    m_leftMotor.setVoltage(leftVolts);
+    m_rightMotor.setVoltage(-rightVolts); // We invert this to maintain +ve = forward
+    m_diffDrive.feed();
   }
 
   public void resetEncoders() {
@@ -65,7 +90,6 @@ public class RomiDrivetrain extends SubsystemBase {
   public double getRightDistanceInch() {
     return m_rightEncoder.getDistance();
   }
-  
 
   @Override
   public void periodic() {
