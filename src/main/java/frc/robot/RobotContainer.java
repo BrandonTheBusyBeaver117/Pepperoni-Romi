@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
 import java.util.function.BiConsumer;
 
@@ -20,6 +21,7 @@ import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.commands.ExampleCommand;
@@ -57,6 +59,12 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the button bindings
     romiDrivetrain.setDefaultCommand(driveCommand);
+    Shuffleboard.getTab("romi").addNumber("pose x", () -> romiDrivetrain.getPose().getX());
+    Shuffleboard.getTab("romi").addNumber("pose y", () -> romiDrivetrain.getPose().getY());
+    Shuffleboard.getTab("romi").addNumber("pose rot", () -> romiDrivetrain.getPose().getRotation().getDegrees());
+    Shuffleboard.getTab("romi").addNumber("left distance inch", () -> romiDrivetrain.getLeftDistanceInch());
+
+
     configureButtonBindings();
   }
 
